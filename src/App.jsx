@@ -1,7 +1,8 @@
 import './App.css';
+import Excel from './components/Excel/Excel';
 
 function App() {
-  const headers = ['Book', 'Author', 'Language', 'Published', 'Sales'];
+  const headers = ['Book', 'Author', 'Language', 'Published', 'Sales', 'Genre'];
   const data = [
     [
       'Don Quixote',

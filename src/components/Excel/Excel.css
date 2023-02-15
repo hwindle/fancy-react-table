@@ -1,0 +1,38 @@
+table {
+  max-width: 90vw;
+  margin: 3rem auto;
+  /* border: 1px solid black; */
+  background-color: white;
+  border-radius: 15px;
+  border-collapse: collapse;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+tr {
+  padding: 2rem 1rem;
+}
+
+thead {
+  background-color: #2a3bbd;
+  color: white;
+}
+
+th {
+  font-size: 1.35rem;
+}
+
+th:first-child {
+  border-radius: 15px 0 0 0;
+}
+
+th:last-child {
+  border-radius: 0 15px 0 0;
+}
+
+td, th {
+  padding: 0.5rem 1rem;
+}
+
+tbody > tr:nth-child(odd) {
+  background: linear-gradient(180deg, #efefef, #bbb);
+}
