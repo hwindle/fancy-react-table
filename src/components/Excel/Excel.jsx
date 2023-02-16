@@ -8,6 +8,7 @@ const Excel = ({headers, initialData}) => {
     column: null,
     descending: false,
   });
+  const [edit, setEdit] = useState(null);
 
   // perform a deep clone of the (data) object
   function clone(obj) {
@@ -40,6 +41,26 @@ const Excel = ({headers, initialData}) => {
     setSorting({column, descending});
   }
 
+  // show a text input field for editing on dbl click
+  function showEditor(e) {
+    setEdit({
+      row: parseInt(e.target.parentNode.dataset.row, 10),
+      column: e.target.cellIndex,
+    });
+  }
+
+  // save the data from showEditor above
+  function save(e) {
+    e.preventDefault();
+    const input = e.target.firstChild;
+    const dataCopy = clone(data);
+    // set data to be the input value entered in showEditor
+    dataCopy[edit.row][edit.column] = input.value;
+    // value to indicate we have finished editing
+    setEdit(null);
+    setData(dataCopy);
+  }
+
   // the unicode code points are a down arrow & up arrow
   return (
     <table>
@@ -53,12 +74,19 @@ const Excel = ({headers, initialData}) => {
           })}
         </tr>
       </thead>
-      <tbody>
-        {data.map((row, idx) => (
-          <tr key={idx}>
-            {row.map((cell, idx) => (
-              <td key={idx}>{cell}</td>
-            ))}
+      <tbody onDoubleClick={showEditor}>
+        {data.map((row, rowIdx) => (
+          <tr key={rowIdx} data-row={rowIdx}>
+            {row.map((cell, columnIdx) => {
+              if ( edit && edit.row === rowIdx && edit.column === columnIdx) {
+                cell = (
+                  <form onSubmit={save}>
+                    <input type="text" defaultValue={cell} />
+                  </form>
+                );
+              }
+              return <td key={columnIdx}>{cell}</td>;
+            })}
           </tr>
         ))}
       </tbody>
