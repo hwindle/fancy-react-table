@@ -2,13 +2,16 @@ import React, { useState } from 'react';
 import PropTypes from 'prop-types';
 import './Excel.css';
 
-const Excel = ({headers, initialData}) => {
+const Excel = ({ headers, initialData }) => {
   const [data, setData] = useState(initialData);
   const [sorting, setSorting] = useState({
     column: null,
     descending: false,
   });
   const [edit, setEdit] = useState(null);
+  // search bar state
+  const [search, setSearch] = useState(false);
+  const [preSearchData, setPreSearchData] = useState(null);
 
   // perform a deep clone of the (data) object
   function clone(obj) {
@@ -38,7 +41,7 @@ const Excel = ({headers, initialData}) => {
     });
     // set the data
     setData(dataCopy);
-    setSorting({column, descending});
+    setSorting({ column, descending });
   }
 
   // show a text input field for editing on dbl click
@@ -60,43 +63,106 @@ const Excel = ({headers, initialData}) => {
     setEdit(null);
     setData(dataCopy);
   }
+  /**
+   * Searching functions
+   */
+  function toggleSearch() {
+    if (search) {
+      // data from before the search
+      setData(preSearchData);
+      // search is true, so set it to false
+      setSearch(false);
+      // no filtered data
+      setPreSearchData(null);
+    } else {
+      // save the data from before the filter
+      setPreSearchData(data);
+      // toggle the flag
+      setSearch(true);
+    }
+  }
+
+  function filterData(e) {
+    const needle = e.target.value.toLowerCase();
+    if (!needle) {
+      setData(preSearchData);
+      return;
+    }
+    console.log(e.target.dataset);
+    const idx = e.target.dataset.idx;
+    const haystack = preSearchData.filter((row) => {
+      // .indexOf(needle) > -1 would also work as the
+      // last chain here
+      return row[idx].toString().toLowerCase().includes(needle);
+    });
+    setData(haystack);
+  }
+
+  // if search isn't set, return no JSX (? null :)
+  const searchRow = !search ? null : (
+    <tr className='search-row' onChange={filterData}>
+      {headers.map((_, idx) => (
+        <td key={idx}>
+          <input type='text' className='search-input' data-idx={idx} />
+        </td>
+      ))}
+    </tr>
+  );
 
   // the unicode code points are a down arrow & up arrow
   return (
-    <table>
-      <thead onClick={sort}>
-        <tr>
-          {headers.map((title, idx) => {
-            if (sorting.column === idx) {
-              title += sorting.descending ? ' \u2191' : ' \u2193';
-            }
-            return <th key={idx}>{title}</th>;
-          })}
-        </tr>
-      </thead>
-      <tbody onDoubleClick={showEditor}>
-        {data.map((row, rowIdx) => (
-          <tr key={rowIdx} data-row={rowIdx}>
-            {row.map((cell, columnIdx) => {
-              if ( edit && edit.row === rowIdx && edit.column === columnIdx) {
-                cell = (
-                  <form onSubmit={save}>
-                    <input type="text" defaultValue={cell} />
-                  </form>
-                );
+    <section className='excel-table'>
+      <div className='toolbar'>
+        <button onClick={toggleSearch}>
+          {search ? 'Hide search' : 'Show search'}
+        </button>
+      </div>
+      <table>
+        <thead onClick={sort}>
+          <tr>
+            {headers.map((title, idx) => {
+              if (sorting.column === idx) {
+                title += sorting.descending ? ' \u2191' : ' \u2193';
               }
-              return <td key={columnIdx}>{cell}</td>;
+              return <th key={idx}>{title}</th>;
             })}
           </tr>
-        ))}
-      </tbody>
-    </table>
+        </thead>
+        <tbody onDoubleClick={showEditor}>
+          {searchRow}
+          {data.map((row) => {
+            const recordId = row[row.length - 1];
+            return (
+              <tr key={recordId} data-row={recordId}>
+                {row.map((cell, columnIdx) => {
+                  if (columnIdx === headers.length) {
+                    return;
+                  }
+                  if (
+                    edit &&
+                    edit.row === recordId &&
+                    edit.column === columnIdx
+                  ) {
+                    cell = (
+                      <form onSubmit={save}>
+                        <input className="cell-edit" type='text' defaultValue={cell} />
+                      </form>
+                    );
+                  }
+                  return <td key={columnIdx}>{cell}</td>;
+                })}
+              </tr>
+            );
+          })}
+        </tbody>
+      </table>
+    </section>
   );
 };
 
 Excel.propTypes = {
   headers: PropTypes.arrayOf(PropTypes.string),
   initialData: PropTypes.arrayOf(PropTypes.arrayOf(PropTypes.string)),
-}
+};
 
 export default Excel;
