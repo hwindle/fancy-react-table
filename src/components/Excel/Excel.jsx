@@ -1,17 +1,18 @@
-import React, { useState } from 'react';
+import React from 'react';
 import PropTypes from 'prop-types';
 import './Excel.css';
+import useLoggedState from '../../CustomHooks/useLoggedState';
 
 const Excel = ({ headers, initialData }) => {
-  const [data, setData] = useState(initialData);
-  const [sorting, setSorting] = useState({
+  const [data, setData] = useLoggedState(initialData, true);
+  const [sorting, setSorting] = useLoggedState({
     column: null,
     descending: false,
   });
-  const [edit, setEdit] = useState(null);
+  const [edit, setEdit] = useLoggedState(null);
   // search bar state
-  const [search, setSearch] = useState(false);
-  const [preSearchData, setPreSearchData] = useState(null);
+  const [search, setSearch] = useLoggedState(false);
+  const [preSearchData, setPreSearchData] = useLoggedState(null);
 
   // perform a deep clone of the (data) object
   function clone(obj) {
@@ -63,6 +64,8 @@ const Excel = ({ headers, initialData }) => {
     setEdit(null);
     setData(dataCopy);
   }
+
+
   /**
    * Searching functions
    */
