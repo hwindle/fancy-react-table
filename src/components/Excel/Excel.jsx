@@ -1,10 +1,57 @@
-import React from 'react';
+import React, { useReducer } from 'react';
 import PropTypes from 'prop-types';
 import './Excel.css';
 import useLoggedState from '../../CustomHooks/useLoggedState';
+// for unique keys
+import shortID from 'shortid';
+
+// perform a deep clone of the (data) object
+function clone(obj) {
+  return JSON.parse(JSON.stringify(obj));
+}
+// reducer for the search
+let originalData = null;
+function reducer(data, action) {
+  switch (action.type) {
+    case 'sort':
+      const { column, descending } = action.payload;
+      return clone(data).sort((a, b) => {
+        if (a[column] === b[column]) {
+          return 0;
+        }
+        // can be written with two ternary statements
+        // split up for readability.
+        if (descending) {
+          return a[column] < b[column] ? 1 : -1;
+        } else {
+          return a[column] > b[column] ? 1 : -1;
+        }
+      });
+
+    case 'save':
+      data[action.payload.edit.row][action.payload.edit.column] =
+        action.payload.value;
+      return data;
+
+    case 'startSearching':
+      originalData = data;
+      return originalData;
+
+    case 'doneSearching':
+      return originalData;
+
+    case 'search':
+      return originalData.filter((row) => {
+        return row[action.payload.column]
+          .toString()
+          .toLowerCase()
+          .includes(action.payload.needle.toLowerCase());
+      });
+  } // end switch statement
+}
 
 const Excel = ({ headers, initialData }) => {
-  const [data, setData] = useLoggedState(initialData, true);
+  const [data, dispatch] = useReducer(reducer, initialData);
   const [sorting, setSorting] = useLoggedState({
     column: null,
     descending: false,
@@ -12,12 +59,7 @@ const Excel = ({ headers, initialData }) => {
   const [edit, setEdit] = useLoggedState(null);
   // search bar state
   const [search, setSearch] = useLoggedState(false);
-  const [preSearchData, setPreSearchData] = useLoggedState(null);
-
-  // perform a deep clone of the (data) object
-  function clone(obj) {
-    return JSON.parse(JSON.stringify(obj));
-  }
+  // const [preSearchData, setPreSearchData] = useLoggedState(null);
 
   function sort(e) {
     // sort data
@@ -25,24 +67,8 @@ const Excel = ({ headers, initialData }) => {
     // desc is set to true if the column is selected and
     // column is ascending.
     const descending = sorting.column === column && !sorting.descending;
-    // don't modify state directly - leads to bugs
-    const dataCopy = clone(data);
-    dataCopy.sort((a, b) => {
-      if (a[column] === b[column]) {
-        return 0;
-      }
-      // can be written with two ternary statements
-      // split up for readability.
-      let sortType = 1;
-      if (descending) {
-        return a[column] < b[column] ? 1 : -1;
-      } else {
-        return a[column] > b[column] ? 1 : -1;
-      }
-    });
-    // set the data
-    setData(dataCopy);
     setSorting({ column, descending });
+    dispatch({ type: 'sort', payload: {column, descending} });
   }
 
   // show a text input field for editing on dbl click
@@ -56,49 +82,34 @@ const Excel = ({ headers, initialData }) => {
   // save the data from showEditor above
   function save(e) {
     e.preventDefault();
-    const input = e.target.firstChild;
-    const dataCopy = clone(data);
-    // set data to be the input value entered in showEditor
-    dataCopy[edit.row][edit.column] = input.value;
-    // value to indicate we have finished editing
+    const input = e.target.firstChild.value;
+    dispatch({
+      type: 'save',
+      payload: { edit, input },
+    });
     setEdit(null);
-    setData(dataCopy);
   }
-
 
   /**
    * Searching functions
    */
   function toggleSearch() {
-    if (search) {
-      // data from before the search
-      setData(preSearchData);
-      // search is true, so set it to false
-      setSearch(false);
-      // no filtered data
-      setPreSearchData(null);
+    if (!search) {
+      dispatch({ type: 'startSearching' });
     } else {
-      // save the data from before the filter
-      setPreSearchData(data);
-      // toggle the flag
-      setSearch(true);
+      dispatch({ type: 'doneSearching' });
     }
+    setSearch(!search);
   }
 
   function filterData(e) {
     const needle = e.target.value.toLowerCase();
-    if (!needle) {
-      setData(preSearchData);
-      return;
-    }
-    console.log(e.target.dataset);
-    const idx = e.target.dataset.idx;
-    const haystack = preSearchData.filter((row) => {
-      // .indexOf(needle) > -1 would also work as the
-      // last chain here
-      return row[idx].toString().toLowerCase().includes(needle);
+    const column = e.target.dataset.idx;
+    dispatch({
+      type: 'search',
+      payload: { needle, column },
     });
-    setData(haystack);
+    setEdit(null);
   }
 
   // if search isn't set, return no JSX (? null :)
@@ -116,7 +127,8 @@ const Excel = ({ headers, initialData }) => {
   return (
     <section className='excel-table'>
       <div className='toolbar'>
-        <button onClick={toggleSearch}>
+        <button
+          onClick={toggleSearch}>
           {search ? 'Hide search' : 'Show search'}
         </button>
       </div>
@@ -133,22 +145,26 @@ const Excel = ({ headers, initialData }) => {
         </thead>
         <tbody onDoubleClick={showEditor}>
           {searchRow}
-          {data.map((row) => {
-            const recordId = row[row.length - 1];
+          {data.map((row, rowIdx) => {
+            const recordId = shortID.generate();
             return (
-              <tr key={recordId} data-row={recordId}>
+              <tr key={rowIdx} data-row={rowIdx}>
                 {row.map((cell, columnIdx) => {
                   if (columnIdx === headers.length) {
                     return;
                   }
                   if (
                     edit &&
-                    edit.row === recordId &&
+                    edit.row === rowIdx &&
                     edit.column === columnIdx
                   ) {
                     cell = (
                       <form onSubmit={save}>
-                        <input className="cell-edit" type='text' defaultValue={cell} />
+                        <input
+                          className='cell-edit'
+                          type='text'
+                          defaultValue={cell}
+                        />
                       </form>
                     );
                   }
