@@ -1,7 +1,6 @@
-import React, { useReducer } from 'react';
+import React, { useReducer, useState } from 'react';
 import PropTypes from 'prop-types';
 import './Excel.css';
-import useLoggedState from '../../CustomHooks/useLoggedState';
 // for unique keys
 import shortID from 'shortid';
 
@@ -52,14 +51,13 @@ function reducer(data, action) {
 
 const Excel = ({ headers, initialData }) => {
   const [data, dispatch] = useReducer(reducer, initialData);
-  const [sorting, setSorting] = useLoggedState({
+  const [sorting, setSorting] = useState({
     column: null,
     descending: false,
   });
-  const [edit, setEdit] = useLoggedState(null);
+  const [edit, setEdit] = useState(null);
   // search bar state
-  const [search, setSearch] = useLoggedState(false);
-  // const [preSearchData, setPreSearchData] = useLoggedState(null);
+  const [search, setSearch] = useState(false);
 
   function sort(e) {
     // sort data

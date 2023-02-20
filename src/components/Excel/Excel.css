@@ -1,7 +1,8 @@
 table {
-  max-width: 90vw;
+  width: clamp(90%, 85vw, 950px);
   margin: 3rem auto;
   /* border: 1px solid black; */
+  box-shadow: rgba(60, 64, 67, 0.3) 0px 1px 2px 0px, rgba(60, 64, 67, 0.15) 0px 1px 3px 1px;
   background-color: white;
   border-radius: 15px;
   border-collapse: collapse;
@@ -34,5 +35,9 @@ td, th {
 }
 
 tbody > tr:nth-child(odd) {
-  background: linear-gradient(180deg, #efefef, #bbb);
+  background: linear-gradient(180deg, #efefef, #dcd1dc);
+}
+
+tbody > tr:hover {
+  background: #ccc;
 }
