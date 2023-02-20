@@ -41,3 +41,9 @@ tbody > tr:nth-child(odd) {
 tbody > tr:hover {
   background: #ccc;
 }
+
+input.search-input {
+  width: 100%;
+  display: block;
+  padding: 0.2rem 0.4rem;
+}

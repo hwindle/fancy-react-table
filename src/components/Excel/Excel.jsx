@@ -66,7 +66,7 @@ const Excel = ({ headers, initialData }) => {
     // column is ascending.
     const descending = sorting.column === column && !sorting.descending;
     setSorting({ column, descending });
-    dispatch({ type: 'sort', payload: {column, descending} });
+    dispatch({ type: 'sort', payload: { column, descending } });
   }
 
   // show a text input field for editing on dbl click
@@ -115,7 +115,12 @@ const Excel = ({ headers, initialData }) => {
     <tr className='search-row' onChange={filterData}>
       {headers.map((_, idx) => (
         <td key={idx}>
-          <input type='text' className='search-input' data-idx={idx} />
+          <input
+            type='text'
+            className='search-input'
+            data-idx={idx}
+            placeholder='Filter'
+          />
         </td>
       ))}
     </tr>
@@ -125,8 +130,7 @@ const Excel = ({ headers, initialData }) => {
   return (
     <section className='excel-table'>
       <div className='toolbar'>
-        <button
-          onClick={toggleSearch}>
+        <button onClick={toggleSearch}>
           {search ? 'Hide search' : 'Show search'}
         </button>
       </div>
