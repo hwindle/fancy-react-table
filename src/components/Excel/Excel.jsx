@@ -1,6 +1,7 @@
 import React, { useReducer, useState } from 'react';
 import PropTypes from 'prop-types';
 import './Excel.css';
+import UnitConversion from './UnitConversion';
 // for unique keys
 import shortID from 'shortid';
 
@@ -121,7 +122,7 @@ const Excel = ({ headers, initialData }) => {
             })}
           </tr>
         </thead>
-        <tbody onDoubleClick={showEditor}>
+        <tbody>
           {searchRow}
           {data.map((row, rowIdx) => {
             const recordId = shortID.generate();
