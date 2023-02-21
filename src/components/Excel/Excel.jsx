@@ -51,7 +51,7 @@ const Excel = ({ headers, initialData }) => {
     column: null,
     descending: false,
   });
-  const [unitC, setUnitC] = useState(false);
+  
   // search bar state
   const [search, setSearch] = useState(false);
 
@@ -84,7 +84,7 @@ const Excel = ({ headers, initialData }) => {
       type: 'search',
       payload: { needle, column },
     });
-    setEdit(null);
+    // setEdit(null);
   }
 
   // if search isn't set, return no JSX (? null :)
@@ -134,15 +134,12 @@ const Excel = ({ headers, initialData }) => {
                   }
                   // set column for unit conversions, col 4
                   // in example data (metres)
-                  if (columnIdx === 4) {
-                    setUnitC(true);
-                  }
                   // render unit coversion component
                   if (
-                    unitC === true
+                    columnIdx === 4
                   ) {
                     cell = (
-                      <UnitConversion unitType={'metres'} conversion={'metres_to_yards'} data={cell} />
+                      <UnitConversion unitType={'metres'} conversion={'metres_to_yards'} data={Number(cell)} />
                     );
                   }
                   return <td key={columnIdx}>{cell}</td>;
@@ -162,3 +159,4 @@ Excel.propTypes = {
 };
 
 export default Excel;
+

@@ -16,7 +16,7 @@ const UnitConversion = (props) => {
     switch (unitType) {
       case 'metres':
         if (conversion === 'metres_to_yards') {
-          return Number(data) * 1.0936;
+          return Math.floor(Number(data) * 1.0936);
         }
         break;
       default:
