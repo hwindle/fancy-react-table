@@ -27,11 +27,6 @@ function reducer(data, action) {
         }
       });
 
-    case 'save':
-      data[action.payload.edit.row][action.payload.edit.column] =
-        action.payload.value;
-      return data;
-
     case 'startSearching':
       originalData = data;
       return originalData;
@@ -55,7 +50,7 @@ const Excel = ({ headers, initialData }) => {
     column: null,
     descending: false,
   });
-  const [edit, setEdit] = useState(null);
+  const [unitC, setUnitC] = useState(false);
   // search bar state
   const [search, setSearch] = useState(false);
 
@@ -67,25 +62,6 @@ const Excel = ({ headers, initialData }) => {
     const descending = sorting.column === column && !sorting.descending;
     setSorting({ column, descending });
     dispatch({ type: 'sort', payload: { column, descending } });
-  }
-
-  // show a text input field for editing on dbl click
-  function showEditor(e) {
-    setEdit({
-      row: parseInt(e.target.parentNode.dataset.row, 10),
-      column: e.target.cellIndex,
-    });
-  }
-
-  // save the data from showEditor above
-  function save(e) {
-    e.preventDefault();
-    const input = e.target.firstChild.value;
-    dispatch({
-      type: 'save',
-      payload: { edit, input },
-    });
-    setEdit(null);
   }
 
   /**
@@ -150,24 +126,22 @@ const Excel = ({ headers, initialData }) => {
           {data.map((row, rowIdx) => {
             const recordId = shortID.generate();
             return (
-              <tr key={rowIdx} data-row={rowIdx}>
+              <tr key={recordId} data-row={rowIdx}>
                 {row.map((cell, columnIdx) => {
                   if (columnIdx === headers.length) {
                     return;
                   }
+                  // set column for unit conversions, col 4
+                  // in example data (metres)
+                  if (columnIdx === 4) {
+                    setUnitC(true);
+                  }
+                  // render unit coversion component
                   if (
-                    edit &&
-                    edit.row === rowIdx &&
-                    edit.column === columnIdx
+                    unitC === true
                   ) {
                     cell = (
-                      <form onSubmit={save}>
-                        <input
-                          className='cell-edit'
-                          type='text'
-                          defaultValue={cell}
-                        />
-                      </form>
+                      <UnitConversion unitType={'metres'} conversion={'metres_to_yards'} data={cell} />
                     );
                   }
                   return <td key={columnIdx}>{cell}</td>;
